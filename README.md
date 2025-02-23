@@ -22,7 +22,6 @@ This repository contains the code for a demonstration project showcasing how to 
 *   `package.json`:  Node.js project metadata, including dependencies and scripts.
 *   `package-lock.json`:  Records the exact versions of dependencies used.
 
-
 **Prerequisites:**
 
 *   **Node.js and npm (or yarn):**  Make sure you have Node.js (version 16 or higher recommended) and npm (or yarn) installed.
