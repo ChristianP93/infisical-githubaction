@@ -1,0 +1,36 @@
+env:
+  environment: development
+  logLevel: info
+  name: infiscal-githubactions
+  version: 1.0.0
+
+postgres:
+  host: postgres
+  port: 5432
+  username: postgres
+  password: password
+  database: miao
+  synchronize: false
+
+AWS-S3:
+  AWS_S3_ACCESS_KEY: XXX
+  AWS_S3_SECRET_KEY: XXX1
+  AWS_S3_REGION: Europe (Milan) eu-south-1
+  AWS_S3_BUCKET_NAME: bucket-name
+  AWS_S3_LAMBDA_ENV: LATEST
+  AWS_S3_EXT_FILE: zip
+  AWS_SIGNED_S3_URL_EXPIRE_SECONDS: 7200
+
+redis:
+  host: redis
+  port: 6379
+
+auth:
+  m2m: ciao
+  jwt:
+    secret: miao
+    exp: 120m
+  refresh:
+    secret: bau
+    exp: 420m
+

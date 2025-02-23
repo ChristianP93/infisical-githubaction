@@ -1,0 +1,65 @@
+name: CI/CD Pipeline
+
+on:
+    release:
+        types: [published]
+
+env:
+  # ORG secrets
+    # Docker Hub credentials
+      DOCKER_HUB_USERNAME : ${{ secrets.DOCKER_HUB_USERNAME }}
+      DOCKER_HUB_TOKEN    : ${{ secrets.DOCKER_HUB_TOKEN }}
+
+  # ENV secrets
+    #ENV variables
+      YAML_FILE           : ${{ secrets.DEFAULT_YML }}       # DEV: content of the yaml file
+      ENV_FILE            : ${{ secrets.ENV }}
+      DEFAULT_YML_FILENAME: ${{ secrets.DEFAULT_YML_FILENAME }}
+      INFISCAL_TEST_ACTION: ${{ secrets.INFISCAL_TEST_ACTION }}        # DEV: content of the env file
+
+  # REPO variables
+    # Docker ENV
+      IMAGE_NAME          : ${{ secrets.IMAGE_NAME }}
+
+    #ENV variables
+      TARGET              : ${{ secrets.ENV_LEVEL }}  # DEV: develop, staging or production 
+
+  # ACTIONS variables
+      VERSION             : v${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}
+
+  # LOCAL variables
+      ROOT_FOLDER         : ~/workspace
+      YAML_FILE_PATH      : ./src/config/
+      YML_EXTENSION       : yml
+
+  # LOCAL static variables - should not be necessary to change
+      ENV_FILE_PATH       : .env
+      TEMP_ENV_FILE_PATH  : env
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: npm ci
+      - name: Run test
+        run: npm run test
+  build_and_push:
+    needs: test
+    runs-on: ubuntu-24.04
+    environment: 'production'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: 'Create env file'
+        run: echo "${{ env.ENV_FILE }}" > ${{env.ENV_FILE_PATH}}
+      - name: 'Create env [TARGET].yaml'
+        run: echo "${{ env.YAML_FILE }}" > ${{env.YAML_FILE_PATH}}${{env.DEFAULT_YML_FILENAME}}.${{env.YML_EXTENSION}}
+      - name: Build Docker image
+        run: docker build -t ${{env.IMAGE_NAME}}:latest --target ${{env.TARGET}} .
+      - name: Push Docker image to Docker Hub
+        run: |
+          echo ${{ env.DOCKER_HUB_TOKEN }} | docker login -u ${{ env.DOCKER_HUB_USERNAME }} --password-stdin
+          docker tag ${{env.IMAGE_NAME}}:latest  ${{ env.DOCKER_HUB_USERNAME }}/${{env.IMAGE_NAME}}:latest 
+          docker push ${{ env.DOCKER_HUB_USERNAME }}/${{env.IMAGE_NAME}}:latest 
